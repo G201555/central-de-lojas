@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  // Para liberar alguém: criar o usuário no Firebase Auth (e-mail/senha) E incluir o e-mail
+  // na lista certa abaixo, depois `firebase deploy --only firestore:rules`.
+  function email() {
+    return request.auth != null ? request.auth.token.email.lower() : '';
+  }
+  // Publicam os dados (tools\publicar.py)
+  function admin() {
+    return email() in [
+      'usuario@exemplo.com'
+    ];
+  }
+  // Giram/ocultam fotos e usam a tela "Revisar fotos" (incluir também em REVISORES no central.html)
+  function revisor() {
+    return admin() || email() in [
+    ];
+  }
+  // Só consultam (cliente Penalty, equipe)
+  function leitor() {
+    return revisor() || email() in [
+    ];
+  }
+  match /databases/{database}/documents {
+    match /resumo/{id} {
+      allow read: if leitor();
+      allow write: if admin();
+    }
+    match /lojas/{cod} {
+      allow read: if leitor();
+      allow write: if admin();
+    }
+    // girar/ocultar fotos (modo ajuste e tela de revisão)
+    match /ajustes/{id} {
+      allow read: if leitor();
+      allow write: if revisor()
+        && request.resource.data.keys().hasOnly(['r', 'h', 'por', 'em'])
+        && request.resource.data.r in [0, 90, 180, 270]
+        && request.resource.data.h is bool
+        && request.resource.data.por == email()
+        && request.resource.data.em == request.time;
+    }
+    // lista de fotos da tela de revisão (tools\lista_revisao.py → publicar.py)
+    match /revisao/{id} {
+      allow read: if revisor();
+      allow write: if admin();
+    }
+    // páginas da revisão abertas/concluídas
+    match /revisao_feita/{id} {
+      allow read: if revisor();
+      allow write: if revisor()
+        && request.resource.data.keys().hasOnly(['status', 'por', 'em'])
+        && request.resource.data.status in ['aberta', 'feita']
+        && request.resource.data.por == email()
+        && request.resource.data.em == request.time;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

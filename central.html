@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Central de Lojas Penalty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f5f5f5; --card:#fff; --ink:#000; --ink-2:#4d4d4a; --ink-3:#7a7a75; --line:#e4e3df; --line-2:#d2d1cc;
+  --red:#000; --red-ink:#000; --red-soft:#f0f0f0; --black:#000;
+  --s-bola:#2a78d6; --s-calc:#eb6834; --comp:#cfcfcf;
+  --good:#1a7f37; --bad:#c62828; --good-soft:#e6f4ea; --bad-soft:#fdecea;
+  --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:13.5px/1.5 Montserrat,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.cond{font-family:"League Gothic",Montserrat,sans-serif;font-weight:400;letter-spacing:.02em}
+a{color:inherit}
+button{font:inherit;color:inherit}
+.strip{background:#000;color:#fff;text-align:center;font:600 11px/1 Montserrat;letter-spacing:.12em;text-transform:uppercase;padding:9px 16px}
+.top{background:#fff;color:#000;position:sticky;top:0;z-index:1000;border-bottom:1px solid var(--line)}
+.top-in{max-width:1240px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:14px;cursor:pointer;background:none;border:0;color:#000;padding:0}
+.logo-svg{height:22px;width:auto;display:block}
+.logo small{font:400 20px/1 "League Gothic";letter-spacing:.06em;color:#000;text-transform:uppercase;border-left:1px solid #000;padding-left:14px}
+.top .sp{flex:1}
+.top .upd{font-size:11.5px;color:var(--ink-3)}
+.top .btn-top{background:#fff;border:1px solid #000;color:#000;border-radius:0;padding:8px 14px;cursor:pointer;font:700 11px/1 Montserrat;letter-spacing:.08em;text-transform:uppercase}
+.top .btn-top:hover{background:#000;color:#fff}
+main{max-width:1240px;margin:0 auto;padding:24px 20px 60px}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:0 0 20px;background:#000 radial-gradient(120% 140% at 85% 0%,#2a2a2a 0%,#000 60%);color:#fff;padding:36px 32px;border-radius:4px}
+.hero h1{font-size:64px;line-height:.92;margin:0;text-transform:uppercase;letter-spacing:.02em}
+.hero h1 em{color:#fff;font-style:normal;-webkit-text-stroke:1.5px #fff;color:transparent}
+.hero p{margin:12px 0 0;color:rgba(255,255,255,.78);max-width:640px}
+.hero .since,.hero .since .big{color:#fff}
+.card{background:var(--card);border:1px solid var(--line);border-radius:4px;box-shadow:var(--shadow)}
+.sec{margin-top:28px}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 0 12px;flex-wrap:wrap}
+.sec-h h2{font-size:30px;margin:0;text-transform:uppercase}
+.sec-h .note{color:var(--ink-3);font-size:12.5px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi{padding:16px 18px;position:relative;overflow:hidden}
+.kpi .v{font:400 44px/1 "League Gothic";letter-spacing:.01em;font-variant-numeric:tabular-nums}
+.kpi .l{color:var(--ink-2);font-size:13px;margin-top:6px}
+.kpi .s{color:var(--ink-3);font-size:12px;margin-top:2px}
+.kpi.hl{background:var(--red);border-color:var(--red);color:#fff}
+.kpi.hl .l,.kpi.hl .s{color:rgba(255,255,255,.85)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.panel{padding:16px 18px}
+.panel h3{margin:0 0 2px;font-size:24px;text-transform:uppercase}
+.panel .sub{color:var(--ink-3);font-size:12.5px;margin-bottom:10px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2);margin:2px 0 8px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend b{width:12px;height:3px;border-radius:2px;display:inline-block}
+.legend b.sq{height:10px;width:10px;border-radius:3px}
+.chart{position:relative}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .ax{font-size:11px;fill:var(--ink-3)}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .base{stroke:var(--line-2);stroke-width:1}
+.chart .lbl{font-size:11.5px;font-weight:600;fill:var(--ink)}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--card);font-size:12px;padding:7px 9px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-100%);margin-top:-10px;opacity:0;transition:opacity .1s;z-index:5;line-height:1.5}
+.tip.on{opacity:1}
+.tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.filters input,.filters select{background:var(--card);color:var(--ink);border:1px solid var(--line-2);border-radius:10px;padding:9px 12px;font:inherit;min-width:0}
+.filters input{flex:1 1 260px}
+.filters .count{color:var(--ink-3);font-size:12.5px;margin-left:auto}
+#map{height:440px;border-radius:14px;overflow:hidden;border:1px solid var(--line);z-index:1}
+.leaflet-popup-content{font:13px/1.4 Montserrat,sans-serif;margin:12px 14px}
+.leaflet-popup-content b{display:block;font-size:14px}
+.leaflet-popup-content button{margin-top:8px;background:var(--red);color:#fff;border:0;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:600}
+table.tb{width:100%;border-collapse:collapse;font-size:13px}
+.tb th{text-align:left;font-weight:600;color:var(--ink-3);font-size:12px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap;user-select:none}
+.tb th.num,.tb td.num{text-align:right;font-variant-numeric:tabular-nums}
+.tb th[aria-sort]::after{content:" ↓";color:var(--red)}
+.tb th[aria-sort="ascending"]::after{content:" ↑"}
+.tb td{padding:10px 12px;border-bottom:1px solid var(--line)}
+.tb tbody tr{cursor:pointer}
+.tb tbody tr:hover td{background:var(--red-soft)}
+.tb td .nm{font-weight:700;font-size:13.5px}
+.tb td .mt{color:var(--ink-3);font-size:12px;margin-top:2px}
+.tb td{vertical-align:middle}
+.tb tbody tr:hover .nm{text-decoration:underline}
+.lj{display:flex;align-items:center;gap:14px;min-width:260px}
+.th{width:56px;height:56px;flex:none;overflow:hidden;background:var(--line);position:relative}
+.th img{width:100%;height:100%;object-fit:cover;display:block}
+.th img.r90{transform:rotate(90deg)}.th img.r180{transform:rotate(180deg)}.th img.r270{transform:rotate(-90deg)}
+.th.vazio::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent 0 6px,rgba(0,0,0,.05) 6px 12px)}
+.vb{display:flex;align-items:center;justify-content:flex-end;gap:10px}
+.vb b{font:400 22px/1 "League Gothic";font-variant-numeric:tabular-nums;min-width:28px;text-align:right}
+.vb i{display:block;width:56px;height:4px;background:var(--line)}
+.vb i u{display:block;height:100%;background:#000}
+.rec{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.rec::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+.rec small{display:block;color:var(--ink-3);font-size:11px}
+.sh{min-width:118px}
+.sh .t{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.sh b{font:400 22px/1 "League Gothic"}
+.sh .d{font-size:11px;font-weight:700}
+.sh .d.up{color:var(--good)}.sh .d.down{color:var(--bad)}
+.sh i{display:block;height:4px;background:var(--line);margin-top:6px}
+.sh i u{display:block;height:100%;background:#000}
+.pxc{display:inline-block;min-width:26px;text-align:center;font-weight:700;font-size:12px;padding:3px 8px;background:#000;color:#fff}
+.pxc.z{background:none;color:var(--ink-3);font-weight:500}
+.go{color:var(--ink-3);font-size:20px;text-align:right}
+.tb tbody tr:hover .go{color:#000}
+.tbwrap{overflow-x:auto}
+.more{display:block;margin:12px auto 4px;background:none;border:1px solid var(--line-2);border-radius:10px;padding:8px 14px;cursor:pointer}
+/* loja */
+.back{background:none;border:0;color:var(--ink-2);cursor:pointer;padding:0;margin-bottom:14px;font-weight:600}
+.back:hover{color:var(--red)}
+.lhead{padding:22px 24px;display:grid;grid-template-columns:1fr auto;gap:18px;border-top:5px solid var(--red)}
+.lhead h1{font-size:46px;line-height:1.02;margin:0;text-transform:uppercase}
+.lhead .addr{color:var(--ink-2);margin-top:6px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.chip{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12.5px;color:var(--ink-2)}
+.chip b{color:var(--ink);font-weight:600}
+.since{text-align:right;color:var(--ink-3);font-size:12.5px}
+.since .big{font:400 54px/1 "League Gothic";color:var(--red);display:block}
+.ad{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.adc{padding:14px 16px}
+.adc .t{font-size:12.5px;color:var(--ink-2);font-weight:600}
+.adc .row{display:flex;align-items:baseline;gap:8px;margin-top:8px}
+.adc .from{color:var(--ink-3);font:400 26px/1 "League Gothic"}
+.adc .arrow{color:var(--ink-3)}
+.adc .to{font:400 40px/1 "League Gothic"}
+.adc .dl{display:inline-block;margin-top:8px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px}
+.dl.up{background:var(--good-soft);color:var(--good)}
+.dl.down{background:var(--bad-soft);color:var(--bad)}
+.dl.eq{background:var(--bg);color:var(--ink-3)}
+.adc .dt{color:var(--ink-3);font-size:11.5px;margin-top:6px}
+.pes{display:flex;gap:8px;flex-wrap:wrap}
+.pe{border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--card);font-weight:600;font-size:13px;display:flex;gap:8px;align-items:center}
+.pe.on{border-color:var(--red);background:var(--red-soft);color:var(--red-ink)}
+.pe .st{font-weight:500;font-size:11.5px;color:var(--ink-3)}
+.pe.on .st{color:var(--red-ink)}
+/* antes/depois */
+.ba-wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:16px;align-items:start}
+.ba{position:relative;aspect-ratio:3/4;max-height:640px;margin:0 auto;border-radius:12px;overflow:hidden;background:#000;user-select:none;touch-action:none}
+.ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
+.ba .clip{position:absolute;inset:0;clip-path:inset(0 50% 0 0)}
+.ba .bar{position:absolute;top:0;bottom:0;left:50%;width:3px;background:#fff;transform:translateX(-50%);box-shadow:0 0 0 1px rgba(0,0,0,.25)}
+.ba .bar::after{content:"‹ ›";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;color:#111;border-radius:999px;width:36px;height:36px;display:grid;place-items:center;font-weight:700}
+.ba .tag{position:absolute;top:10px;background:rgba(0,0,0,.65);color:#fff;font:400 13px/1 "League Gothic";letter-spacing:.06em;text-transform:uppercase;padding:6px 9px;border-radius:6px}
+.ba .tag.a{left:10px}.ba .tag.b{right:10px;background:#fff;color:#000}
+.ba input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-height:620px;overflow:auto;padding-right:4px}
+.thumb{border:2px solid transparent;border-radius:10px;overflow:hidden;cursor:pointer;background:none;padding:0;position:relative;aspect-ratio:3/4}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb.on{border-color:var(--red)}
+.thumb span{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff;font-size:10.5px;padding:10px 6px 4px;text-align:left}
+.gal{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.gal > .gi > button img{display:block}
+.gal img{width:100%;height:100%;object-fit:cover;display:block}
+.gal span{pointer-events:none;position:absolute;left:0;right:0;bottom:0;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff;font-size:10.5px;padding:12px 6px 4px;text-align:left}
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:2000;display:none;align-items:center;justify-content:center;flex-direction:column;padding:20px}
+.lb.on{display:flex}
+.lb img{max-width:100%;max-height:82vh;border-radius:8px}
+/* ajustes de foto: rotação gravada pelo admin (as fotos do app vêm sem EXIF) */
+.fr{position:relative;overflow:hidden}
+.fr img.r180{transform:rotate(180deg)}
+.fr img.r90,.fr img.r270{position:absolute;inset:auto;top:50%;left:50%;width:133.334%;height:75%;object-fit:cover;transform:translate(-50%,-50%) rotate(90deg)}
+.fr img.r270{transform:translate(-50%,-50%) rotate(-90deg)}
+.lb img.r90{transform:rotate(90deg);max-width:82vh;max-height:92vw}
+.lb img.r270{transform:rotate(-90deg);max-width:82vh;max-height:92vw}
+.lb img.r180{transform:rotate(180deg)}
+.gi{aspect-ratio:3/4;border-radius:10px;background:var(--line)}
+.gi > button{position:absolute;inset:0;border:0;padding:0;cursor:zoom-in;background:none;width:100%}
+.adm{position:absolute;top:6px;right:6px;display:flex;gap:4px;z-index:3;opacity:0;transition:opacity .12s}
+.gi:hover .adm,.gi:focus-within .adm,.oculta .adm{opacity:1}
+@media (hover:none){.adm{opacity:1}}
+.adm button{background:rgba(0,0,0,.72);color:#fff;border:0;border-radius:7px;min-width:30px;height:30px;padding:0 7px;cursor:pointer;font-size:14px;line-height:1}
+.adm button:hover{background:var(--red)}
+.oculta img{opacity:.3}
+.oculta::after{content:"OCULTA";position:absolute;top:8px;left:8px;background:var(--red);color:#fff;font:700 11px/1 Montserrat;padding:4px 6px;border-radius:5px;z-index:2}
+.ba-adm{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.ba-adm button{background:var(--bg);border:1px solid var(--line-2);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:12.5px}
+.ba-adm button:hover{border-color:var(--red);color:var(--red-ink)}
+.rev{grid-template-columns:repeat(6,1fr);gap:10px;padding-bottom:80px}
+.rev .gi{cursor:pointer}
+.rev .gi:hover{outline:3px solid var(--red);outline-offset:-3px}
+.rev .adm{opacity:1}
+.revbar{position:fixed;left:0;right:0;bottom:0;z-index:900;background:var(--black);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px max(16px,calc((100vw - 1240px)/2 + 20px))}
+.revbar button{background:#fff;color:#000;border:0;border-radius:0;text-transform:uppercase;letter-spacing:.06em;padding:12px 22px;font-weight:700;font-size:15px;cursor:pointer}
+.revbar button:disabled{opacity:.6}
+@media (max-width:980px){.rev{grid-template-columns:repeat(3,1fr)}}
+.modo-adm{font-size:12px;color:var(--red-ink);background:var(--red-soft);border-radius:999px;padding:3px 10px;font-weight:600}
+.lb .cap{color:#fff;margin-top:10px;font-size:13px}
+.lb .x{position:absolute;top:14px;right:18px;background:none;border:0;color:#fff;font-size:30px;cursor:pointer}
+.lb .nav{position:absolute;top:50%;background:rgba(255,255,255,.12);border:0;color:#fff;font-size:28px;width:48px;height:48px;border-radius:999px;cursor:pointer}
+.lb .nav.p{left:16px}.lb .nav.n{right:16px}
+/* timeline */
+.tl{list-style:none;margin:0;padding:0}
+.tl li{display:grid;grid-template-columns:110px 1fr;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+.tl li:last-child{border-bottom:0}
+.tl .d{font:400 24px/1 "League Gothic"}
+.tl .d small{display:block;font:500 12px/1.4 Montserrat;color:var(--ink-3);margin-top:4px}
+.tl .acts{display:flex;gap:6px;flex-wrap:wrap}
+.act{font-size:12.5px;border-radius:8px;padding:4px 9px;background:var(--bg);border:1px solid var(--line)}
+.act b{font-weight:700}
+.act.r{background:var(--red-soft);border-color:transparent;color:var(--red-ink)}
+.tl .meta{color:var(--ink-3);font-size:12px;margin-top:6px}
+.empty{color:var(--ink-3);padding:18px;text-align:center}
+.foot{color:var(--ink-3);font-size:12px;margin-top:36px;line-height:1.6}
+.loading{padding:80px 0;text-align:center;color:var(--ink-3)}
+.login{max-width:380px;margin:60px auto;padding:28px 26px;border-top:5px solid var(--red)}
+.login h1{font-size:30px;margin:0 0 4px;text-transform:uppercase}
+.login p{color:var(--ink-2);margin:0 0 18px}
+.login label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-2);margin:12px 0 4px}
+.login input{width:100%;background:var(--card);color:var(--ink);border:1px solid var(--line-2);border-radius:10px;padding:10px 12px;font:inherit}
+.login button{width:100%;margin-top:18px;background:#000;color:#fff;border:0;border-radius:0;text-transform:uppercase;letter-spacing:.08em;padding:11px;font-weight:700;cursor:pointer}
+.login button:disabled{opacity:.6;cursor:default}
+.login .err{color:var(--bad);font-size:13px;margin-top:10px;min-height:1em}
+@media (max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}.ad{grid-template-columns:repeat(2,1fr)}.grid2,.ba-wrap{grid-template-columns:1fr}.gal{grid-template-columns:repeat(3,1fr)}.lhead{grid-template-columns:1fr}.since{text-align:left}}
+@media (max-width:560px){.logo small{display:none}.top-in{padding:10px 16px}.top .btn-top{white-space:nowrap}main{padding:16px 16px 40px}.hero h1{font-size:30px}.lhead h1{font-size:28px}.kpi .v{font-size:28px}.tl li{grid-template-columns:1fr;gap:6px}.top .upd{display:none}.hide-sm{display:none}}
+@media print{.top,.filters,#map,.back,.more,.noprint{display:none!important}body{background:#fff}.card{box-shadow:none;break-inside:avoid}main{padding:0}}
+</style>
+</head>
+<body>
+<div class="strip noprint">Central de Lojas · execução em campo Penalty</div>
+<header class="top"><div class="top-in">
+  <button class="logo" onclick="go('')" aria-label="Início"><svg class="logo-svg" role="img" aria-label="Penalty" width="227" height="24" viewBox="0 0 227 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M77.7189 13.0078L92.5653 4.10755C82.8037 9.73392 43.4632 -5.75056 3.81186 2.45092C39.1139 -2.19781 69.0898 17.9692 77.7189 13.0078Z" fill="currentColor"></path>
+<path d="M60.1598 23.4995L73.7794 15.4445C63.0963 21.6316 34.5638 -2.51928 0 4.04246C28.5658 0.796809 52.2523 27.982 60.1598 23.4995Z" fill="currentColor"></path>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M94.8284 23.6584H101.141L102.45 17.0777H106.755C112.224 17.0777 115.741 13.3038 115.741 8.91482C115.741 4.10188 113.273 1.91016 109.462 1.91016H99.1651L94.8312 23.6584H94.8284ZM104.4 7.47953H106.582C107.918 7.47953 109.343 7.75661 109.343 9.4302C109.343 10.8932 108.501 11.899 105.942 11.899H103.499L104.4 7.47953Z" fill="currentColor"></path>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M114.586 23.6568H131.688L132.772 18.0819H121.963L122.506 15.3692H132.345L133.346 10.1905H123.538L124.081 7.47791H134.66L135.718 1.90576H118.849L114.586 23.6568Z" fill="currentColor"></path>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M132.929 23.6568H138.904L141.275 11.4679H141.335L145.08 23.6568H151.257L155.545 1.90576H149.568L147.281 13.7871H147.224L143.391 1.90576H137.16L132.929 23.6568Z" fill="currentColor"></path>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M166.158 9.37006H166.215L166.926 15.8898H162.876L166.155 9.37006H166.158ZM152.272 23.6565H158.89L160.519 20.5504H167.404L167.756 23.6565H174.141L170.862 1.9082H164.48L152.278 23.6565H152.272Z" fill="currentColor"></path>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M174.925 23.6568H190.25L191.337 18.0819H182.302L185.447 1.90576H179.157L174.925 23.6568Z" fill="currentColor"></path>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M191.257 23.6568H197.548L200.69 7.47791H206.352L207.441 1.90576H189.824L188.741 7.47791H194.4L191.257 23.6568Z" fill="currentColor"></path>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M208.83 23.6568H215.123L216.667 15.6131L226.617 1.90576H219.24L214.264 10.0049L212.319 1.90576H206L210.374 15.674L208.83 23.6568Z" fill="currentColor"></path>
+</svg><small>Central de Lojas</small></button>
+  <span class="sp"></span>
+  <span class="upd" id="upd"></span>
+  <button class="btn-top noprint" onclick="window.print()">Imprimir / PDF</button>
+  <button class="btn-top noprint" id="btnRev" hidden onclick="go('revisar')">Revisar fotos</button>
+  <button class="btn-top noprint" id="sair" hidden>Sair</button>
+</div></header>
+<main id="app"><div class="loading">Carregando…</div></main>
+<div class="lb" id="lb" role="dialog" aria-modal="true">
+  <button class="x" onclick="lbClose()" aria-label="Fechar">×</button>
+  <button class="nav p" onclick="lbStep(-1)" aria-label="Anterior">‹</button>
+  <img id="lbImg" alt="">
+  <div class="cap" id="lbCap"></div>
+  <button class="nav n" onclick="lbStep(1)" aria-label="Próxima">›</button>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>
+/* No site publicado os dados vêm do Firestore, com login (quem lê é decidido em firestore.rules).
+   Abrindo local (localhost) a página lê a pasta data/ direto. */
+(function () {
+  const local = ['localhost', '127.0.0.1', ''].includes(location.hostname);
+  if (local || !window.firebase) return;
+  firebase.initializeApp({"apiKey": "SUA_API_KEY", "authDomain": "penalty-central-lojas.firebaseapp.com", "projectId": "penalty-central-lojas", "storageBucket": "penalty-central-lojas.firebasestorage.app", "messagingSenderId": "165051584628", "appId": "SEU_APP_ID"});
+  const auth = firebase.auth(), fdb = firebase.firestore();
+  const doc = async (col, id) => {
+    const d = await fdb.collection(col).doc(String(id)).get();
+    if (!d.exists) throw new Error('nao encontrado');
+    return JSON.parse(d.data().json);
+  };
+  // REVISORES só mostra os botões de ajuste e a tela de revisão; quem grava de fato é decidido em
+  // firestore.rules (listas admin/revisor) — incluir o e-mail nos dois lugares
+  const REVISORES = ['usuario@exemplo.com'];
+  const eu = () => (auth.currentUser?.email || '').toLowerCase();
+  window.CENTRAL_FONTE = {
+    resumo: () => doc('resumo', 'geral'), loja: cod => doc('lojas', cod),
+    admin: () => REVISORES.includes(eu()),
+    eu,
+    ajustes: async () => { const m = {}; (await fdb.collection('ajustes').get()).forEach(d => { m[d.id] = d.data(); }); return m; },
+    salvarAjuste: (k, v) => fdb.collection('ajustes').doc(k).set({ r: v.r, h: v.h, por: eu(), em: firebase.firestore.FieldValue.serverTimestamp() }),
+    revisaoIndice: () => doc('revisao', 'indice'),
+    revisaoParte: id => doc('revisao', id),
+    revisaoFeitas: async () => {
+      const m = {};
+      (await fdb.collection('revisao_feita').get()).forEach(d => { const x = d.data(); m[d.id] = { status: x.status, por: x.por, em: x.em ? x.em.toMillis() : 0 }; });
+      return m;
+    },
+    revisaoMarcar: (id, status) => fdb.collection('revisao_feita').doc(id).set({ status, por: eu(), em: firebase.firestore.FieldValue.serverTimestamp() }),
+  };
+  let iniciado = false;
+  auth.onAuthStateChanged(u => {
+    const sair = document.getElementById('sair');
+    if (u) {
+      sair.hidden = false;
+      if (!iniciado) { iniciado = true; document.getElementById('app').innerHTML = '<div class="loading">Carregando…</div>'; window.iniciarCentral(); }
+      return;
+    }
+    iniciado = false; sair.hidden = true;
+    const app = document.getElementById('app');
+    app.innerHTML = `<form class="card login" id="loginForm">
+      <div style="margin-bottom:18px">${document.querySelector('.logo-svg').outerHTML}</div><h1>Central de Lojas</h1><p>Entre com o e-mail e a senha de acesso.</p>
+      <label for="lgEmail">E-mail</label><input id="lgEmail" type="email" autocomplete="username" required>
+      <label for="lgSenha">Senha</label><input id="lgSenha" type="password" autocomplete="current-password" required>
+      <button id="lgBtn">Entrar</button><div class="err" id="lgErr" role="alert"></div></form>`;
+    document.getElementById('loginForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const btn = document.getElementById('lgBtn'), err = document.getElementById('lgErr');
+      btn.disabled = true; err.textContent = '';
+      try { await auth.signInWithEmailAndPassword(document.getElementById('lgEmail').value.trim(), document.getElementById('lgSenha').value); }
+      catch (x) { err.textContent = 'E-mail ou senha inválidos.'; btn.disabled = false; }
+    });
+  });
+  document.addEventListener('click', e => { if (e.target.id === 'sair') auth.signOut().then(() => { location.hash = ''; }); });
+})();
+</script>
+<script>
+/* ---------- fonte de dados: local (data/*.json) ou Firestore (window.CENTRAL_FONTE) ---------- */
+const FONTE = window.CENTRAL_FONTE || {
+  resumo: () => fetch('data/resumo.json', { cache: 'no-cache' }).then(r => r.json()),
+  loja: cod => fetch(`data/lojas/${cod}.json`, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error('loja'); return r.json(); }),
+  // local: ajustes ficam só neste navegador, para testar
+  admin: () => true,
+  ajustes: async () => { try { return JSON.parse(localStorage.getItem('central_ajustes') || '{}'); } catch (e) { return {}; } },
+  salvarAjuste: async (k, v) => { try { const m = JSON.parse(localStorage.getItem('central_ajustes') || '{}'); m[k] = v; localStorage.setItem('central_ajustes', JSON.stringify(m)); } catch (e) {} },
+  eu: () => 'local',
+  revisaoIndice: () => fetch('data/revisao/indice.json', { cache: 'no-cache' }).then(r => r.json()),
+  revisaoParte: id => fetch(`data/revisao/${id}.json`, { cache: 'no-cache' }).then(r => r.json()),
+  revisaoFeitas: async () => { try { return JSON.parse(localStorage.getItem('central_revisao') || '{}'); } catch (e) { return {}; } },
+  revisaoMarcar: async (id, status) => { try { const m = JSON.parse(localStorage.getItem('central_revisao') || '{}'); m[id] = { status, por: 'local', em: Date.now() }; localStorage.setItem('central_revisao', JSON.stringify(m)); } catch (e) {} },
+};
+
+/* ---------- ajustes de foto (girar / ocultar) ---------- */
+let AJ = {}, AUTO = {}, ADMIN = false;  // AJ = ajuste manual (Firestore), AUTO = rotação detectada (tools\fotos.py)
+const fk = u => String(u || '').replace(/^.*minhas_imagens\//, '').replace(/[^A-Za-z0-9]+/g, '_').slice(0, 300);
+const ajK = k => AJ[k] || { r: AUTO[k] || 0, h: false };
+const aj = u => ajK(fk(u));
+const oculta = u => !!aj(u).h;
+const img = (u, alt = '', lazy = true) => `<img ${lazy ? 'loading="lazy" ' : ''}src="${esc(u)}" alt="${esc(alt)}" data-k="${fk(u)}" class="${aj(u).r ? 'r' + aj(u).r : ''}">`;
+function aplicaAjustes() {
+  document.querySelectorAll('img[data-k]').forEach(el => {
+    const a = ajK(el.dataset.k);
+    el.className = a.r ? 'r' + a.r : '';
+    const box = el.closest('.gi,.thumb');
+    if (box) box.classList.toggle('oculta', !!a.h || (box.classList.contains('thumb') && oculta(box.dataset.a)));
+  });
+}
+async function ajusta(u, mud) {
+  const k = fk(u), a = { ...aj(u) };
+  if (mud.gira) a.r = (a.r + mud.gira + 360) % 360;
+  if ('h' in mud) a.h = mud.h;
+  AJ[k] = a; aplicaAjustes();
+  try { await FONTE.salvarAjuste(k, a); }
+  catch (e) { alert('Não foi possível salvar o ajuste da foto. Confira se seu e-mail está na lista de admin.'); }
+}
+const admBtns = u => ADMIN ? `<div class="adm"><button data-a="esq" data-u="${esc(u)}" title="Girar para a esquerda" aria-label="Girar para a esquerda">↺</button><button data-a="dir" data-u="${esc(u)}" title="Girar para a direita" aria-label="Girar para a direita">↻</button><button data-a="ocu" data-u="${esc(u)}" title="Ocultar / mostrar" aria-label="Ocultar ou mostrar">${oculta(u) ? '👁' : '✕'}</button></div>` : '';
+document.addEventListener('click', e => {
+  const b = e.target.closest('.adm button');
+  if (!b) return;
+  e.stopPropagation();
+  const u = b.dataset.u;
+  if (b.dataset.a === 'esq') ajusta(u, { gira: -90 });
+  if (b.dataset.a === 'dir') ajusta(u, { gira: 90 });
+  if (b.dataset.a === 'ocu') { const h = !oculta(u); b.textContent = h ? '👁' : '✕'; ajusta(u, { h }); }
+}, true);
+
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf = new Intl.NumberFormat('pt-BR');
+const n = v => nf.format(Math.round(v || 0));
+const pct = v => v == null ? '—' : (v * 100).toFixed(0) + '%';
+const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const dBR = d => d ? `${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}` : '—';
+const mesBR = m => `${MESES[+m.slice(5,7)-1]}/${m.slice(2,4)}`;
+const horas = min => n((min || 0) / 60);
+const desde = d => { const a = new Date(d), b = new Date(); return Math.max(0, Math.round((b - a) / (864e5 * 30.44))); };
+
+let R = null, cache = {};
+
+/* ---------- roteamento ---------- */
+function go(h) { location.hash = h; }
+window.addEventListener('hashchange', rota);
+function rota() {
+  const m = location.hash.match(/^#loja\/(\d+)/);
+  if (m) telaLoja(+m[1]);
+  else if (location.hash === '#revisar' && ADMIN) telaRevisar();
+  else telaGeral();
+  window.scrollTo(0, 0);
+}
+
+/* ---------- tela: revisão rápida de fotos (só revisores) ----------
+   Lista gerada por tools\lista_revisao.py: fotos verticais que o cliente vê, em páginas de 60.
+   Clique na foto = gira para a esquerda (o caso mais comum das fotos deitadas); ↻ gira para a
+   direita; ✕ oculta. "Concluir página" marca a página como revisada para todos os revisores. */
+let REV = { indice: null, partes: {}, feitas: {}, atual: null };
+const REV_TRAVA_MS = 20 * 60 * 1000;  // página aberta por outro revisor fica reservada por 20 min
+
+async function proximaPaginaRev() {
+  const agora = Date.now(), eu = FONTE.eu();
+  for (const p of REV.indice.partes) {
+    for (let i = 0; i < p.paginas; i++) {
+      const id = `${p.id}_${String(i).padStart(2, '0')}`, f = REV.feitas[id];
+      if (f && (f.status === 'feita' || (f.por !== eu && agora - f.em < REV_TRAVA_MS))) continue;
+      return { parte: p.id, i, id };
+    }
+  }
+  return null;
+}
+
+async function telaRevisar() {
+  if (mapa) { mapa.remove(); mapa = null; }
+  $('#app').innerHTML = `<div class="loading">Carregando fotos para revisar…</div>`;
+  try {
+    [REV.indice, REV.feitas] = await Promise.all([REV.indice || FONTE.revisaoIndice(), FONTE.revisaoFeitas()]);
+  } catch (e) { $('#app').innerHTML = `<button class="back" onclick="go('')">← Todas as lojas</button><div class="card empty">Lista de revisão indisponível.</div>`; return; }
+  const total = REV.indice.partes.reduce((s, p) => s + p.paginas, 0);
+  const feitas = Object.values(REV.feitas).filter(f => f.status === 'feita').length;
+  const pg = await proximaPaginaRev();
+  if (!pg) { $('#app').innerHTML = `<button class="back" onclick="go('')">← Todas as lojas</button><div class="card empty">Todas as ${total} páginas já foram revisadas. 🎉</div>`; return; }
+  const parte = REV.partes[pg.parte] ||= await FONTE.revisaoParte(pg.parte);
+  const fotos = parte.pags[pg.i];
+  REV.atual = pg;
+  FONTE.revisaoMarcar(pg.id, 'aberta').catch(() => {});
+  AUTO = {};
+  $('#app').innerHTML = `
+  <button class="back" onclick="go('')">← Todas as lojas</button>
+  <section class="hero" style="margin-bottom:12px"><div><h1>Revisar <em>fotos</em></h1>
+    <p><b>Clique na foto deitada</b> para girar para a esquerda (clique de novo se precisar). ↻ gira para a direita, ✕ esconde do cliente.
+    Quando a página estiver toda em pé, clique em <b>Concluir página</b>.</p></div>
+    <div class="since"><span class="big">${n(feitas)}/${n(total)}</span>páginas revisadas</div></section>
+  <div class="gal rev">${fotos.map(([cod, d, u], i) => `<div class="gi fr" data-u="${esc(u)}">${img(u, '', i > 17)}<span>L${cod} · ${dBR(d)}</span>${admBtns(u)}</div>`).join('')}</div>
+  <div class="revbar"><span>Página ${esc(pg.id)} · ${fotos.length} fotos</span><button id="revOk">Concluir página →</button></div>`;
+  aplicaAjustes();
+  document.querySelectorAll('.rev .gi').forEach(c => c.addEventListener('click', e => {
+    if (e.target.closest('.adm')) return;
+    ajusta(c.dataset.u, { gira: -90 });
+  }));
+  $('#revOk').addEventListener('click', async () => {
+    $('#revOk').disabled = true;
+    try { await FONTE.revisaoMarcar(pg.id, 'feita'); REV.feitas[pg.id] = { status: 'feita', por: FONTE.eu(), em: Date.now() }; }
+    catch (e) { alert('Não foi possível salvar. Confira se seu e-mail está na lista de revisores.'); $('#revOk').disabled = false; return; }
+    telaRevisar(); window.scrollTo(0, 0);
+  });
+}
+
+/* ---------- gráficos SVG ---------- */
+function tipOn(el, html, x, y) { const t = el.querySelector('.tip'); t.innerHTML = html; t.style.left = x + 'px'; t.style.top = y + 'px'; t.classList.add('on'); }
+function tipOff(el) { el.querySelector('.tip').classList.remove('on'); }
+
+function lineChart(el, labels, series, { fmt = pct, max = null, h = 220 } = {}) {
+  const W = 640, H = h, L = 36, Rr = 44, T = 12, B = 26;
+  const vals = series.flatMap(s => s.data.filter(v => v != null));
+  const top = max ?? (Math.max(...vals, 0) * 1.15 || 1);
+  const x = i => L + (labels.length < 2 ? (W - L - Rr) / 2 : i * (W - L - Rr) / (labels.length - 1));
+  const y = v => T + (H - T - B) * (1 - v / top);
+  const ticks = [0, .25, .5, .75, 1].map(f => f * top);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  ticks.forEach(t => svg += `<line class="grid" x1="${L}" x2="${W-Rr}" y1="${y(t)}" y2="${y(t)}"/><text class="ax" x="${L-6}" y="${y(t)+4}" text-anchor="end">${fmt(t)}</text>`);
+  const step = Math.ceil(labels.length / 9);
+  labels.forEach((l, i) => { if ((i % step === 0 && labels.length - 1 - i >= step * .6) || i === labels.length - 1) svg += `<text class="ax" x="${x(i)}" y="${H-8}" text-anchor="middle">${esc(l)}</text>`; });
+  series.forEach(s => {
+    let d = '', pen = false;
+    s.data.forEach((v, i) => { if (v == null) { pen = false; return; } d += (pen ? 'L' : 'M') + x(i) + ' ' + y(v); pen = true; });
+    svg += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    const li = s.data.map((v, i) => v == null ? -1 : i).filter(i => i >= 0).pop();
+    if (li != null && li >= 0) svg += `<circle cx="${x(li)}" cy="${y(s.data[li])}" r="4" fill="${s.color}" stroke="var(--card)" stroke-width="2"/><text class="lbl" x="${x(li)+8}" y="${y(s.data[li])+4}">${fmt(s.data[li])}</text>`;
+  });
+  svg += `<line class="xh" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="var(--ink-3)" stroke-dasharray="3 3" opacity="0"/>`;
+  series.forEach((s, k) => svg += `<circle class="hd hd${k}" r="4.5" fill="${s.color}" stroke="var(--card)" stroke-width="2" opacity="0"/>`);
+  svg += `<rect x="${L}" y="${T}" width="${W-L-Rr}" height="${H-T-B}" fill="transparent" class="hit"/></svg><div class="tip"></div>`;
+  el.innerHTML = svg;
+  const sv = el.querySelector('svg'), hit = el.querySelector('.hit'), xh = el.querySelector('.xh');
+  const move = ev => {
+    const r = sv.getBoundingClientRect(), px = (ev.clientX - r.left) * W / r.width;
+    let i = labels.length < 2 ? 0 : Math.round((px - L) / ((W - L - Rr) / (labels.length - 1)));
+    i = Math.max(0, Math.min(labels.length - 1, i));
+    xh.setAttribute('x1', x(i)); xh.setAttribute('x2', x(i)); xh.setAttribute('opacity', 1);
+    let html = `<b>${esc(labels[i])}</b>`, ymin = H;
+    series.forEach((s, k) => {
+      const c = el.querySelector('.hd' + k), v = s.data[i];
+      if (v == null) { c.setAttribute('opacity', 0); return; }
+      c.setAttribute('cx', x(i)); c.setAttribute('cy', y(v)); c.setAttribute('opacity', 1); ymin = Math.min(ymin, y(v));
+      html += `<br><i style="background:${s.color}"></i>${esc(s.name)}: <b>${fmt(v)}</b>`;
+    });
+    tipOn(el, html, x(i) * r.width / W, ymin * r.height / H);
+  };
+  hit.addEventListener('pointermove', move);
+  hit.addEventListener('pointerleave', () => { tipOff(el); xh.setAttribute('opacity', 0); el.querySelectorAll('.hd').forEach(c => c.setAttribute('opacity', 0)); });
+}
+
+function barChart(el, labels, data, { color = 'var(--ink)', fmt = n, h = 200, unit = '', parcial = -1, notaParcial = '' } = {}) {
+  const W = 640, H = h, L = 36, Rr = 8, T = 18, B = 26;
+  const top = Math.max(...data, 1) * 1.1;
+  const bw = (W - L - Rr) / labels.length, w = Math.max(4, Math.min(28, bw - 6));
+  const y = v => T + (H - T - B) * (1 - v / top);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  [0, .5, 1].forEach(f => { const t = f * top; svg += `<line class="grid" x1="${L}" x2="${W-Rr}" y1="${y(t)}" y2="${y(t)}"/><text class="ax" x="${L-6}" y="${y(t)+4}" text-anchor="end">${fmt(t)}</text>`; });
+  const step = Math.ceil(labels.length / 9);
+  data.forEach((v, i) => {
+    const cx = L + bw * i + bw / 2, yy = y(v), hh = H - B - yy, r = Math.min(4, w / 2, hh);
+    if (v > 0) svg += `<path d="M${cx-w/2} ${H-B}V${yy+r}q0 -${r} ${r} -${r}h${w-2*r}q${r} 0 ${r} ${r}V${H-B}Z" fill="${color}" opacity="${i === parcial ? .4 : 1}"/>`;
+    if ((i % step === 0 && labels.length - 1 - i >= step * .6) || i === labels.length - 1) svg += `<text class="ax" x="${cx}" y="${H-8}" text-anchor="middle">${esc(labels[i])}</text>`;
+    svg += `<rect x="${L + bw*i}" y="${T}" width="${bw}" height="${H-T-B}" fill="transparent" data-i="${i}"/>`;
+  });
+  const mi = data.indexOf(Math.max(...data));
+  if (mi >= 0) svg += `<text class="lbl" x="${L + bw*mi + bw/2}" y="${y(data[mi]) - 6}" text-anchor="middle">${fmt(data[mi])}</text>`;
+  svg += `<line class="base" x1="${L}" x2="${W-Rr}" y1="${H-B}" y2="${H-B}"/></svg><div class="tip"></div>`;
+  el.innerHTML = svg;
+  const sv = el.querySelector('svg');
+  sv.querySelectorAll('rect[data-i]').forEach(rc => {
+    rc.addEventListener('pointerenter', () => { const i = +rc.dataset.i, r = sv.getBoundingClientRect(); tipOn(el, `<b>${esc(labels[i])}</b><br>${fmt(data[i])}${unit}${i === parcial ? '<br>' + notaParcial : ''}`, (L + bw*i + bw/2) * r.width / W, y(data[i]) * r.height / H); });
+    rc.addEventListener('pointerleave', () => tipOff(el));
+  });
+}
+
+/* barras horizontais empilhadas: share por marca, 1ª × última medição */
+function shareStack(el, rows) {
+  const ordem = ['Penalty', 'Nike', 'Adidas', 'Umbro', 'Topper', 'Puma', 'Mizuno', 'Joma', 'Outras'];
+  const W = 640, rowH = 34, L = 92, Rr = 8, T = 4, H = T + rows.length * (rowH + 14);
+  let svg = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
+  rows.forEach((r, k) => {
+    const y = T + k * (rowH + 14); let x = L;
+    svg += `<text class="ax" x="${L-8}" y="${y + rowH/2 + 4}" text-anchor="end">${esc(r.label)}</text>`;
+    ordem.filter(m => r.v[m]).forEach(m => {
+      const w = r.v[m] * (W - L - Rr), pen = m === 'Penalty';
+      svg += `<rect x="${x}" y="${y}" width="${Math.max(0, w - 2)}" height="${rowH}" rx="3" fill="${pen ? 'var(--red)' : 'var(--comp)'}" opacity="${pen ? 1 : .55 + .45 * (1 - ordem.indexOf(m) / ordem.length)}" data-m="${esc(m)}" data-v="${r.v[m]}" data-l="${esc(r.label)}"/>`;
+      if (w > 54) svg += `<text x="${x + 8}" y="${y + rowH/2 + 4}" font-size="11.5" font-weight="600" fill="${pen ? '#fff' : 'var(--ink)'}" pointer-events="none">${esc(m)} ${pct(r.v[m])}</text>`;
+      x += w;
+    });
+  });
+  svg += `</svg><div class="tip"></div>`;
+  el.innerHTML = svg;
+  const sv = el.querySelector('svg');
+  sv.querySelectorAll('rect[data-m]').forEach(rc => {
+    rc.addEventListener('pointerenter', () => { const r = sv.getBoundingClientRect(), bb = rc.getBBox(); tipOn(el, `<b>${rc.dataset.l}</b><br>${rc.dataset.m}: <b>${pct(+rc.dataset.v)}</b>`, (bb.x + bb.width/2) * r.width / W, bb.y * r.height / H); });
+    rc.addEventListener('pointerleave', () => tipOff(el));
+  });
+}
+
+/* ---------- tela: visão geral ---------- */
+let filtro = { q: '', uf: '', band: '', ord: 'v', asc: false, lim: 60 }, mapa = null, camada = null;
+
+function lojasFiltradas() {
+  const q = filtro.q.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  return R.lojas.filter(l => (!filtro.uf || l.uf === filtro.uf) && (!filtro.band || l.bandeira === filtro.band) &&
+    (!q || `${l.cod} ${l.nome} ${l.bandeira} ${l.cidade}`.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').includes(q)));
+}
+
+function telaGeral() {
+  const T = R.totais, meses = R.meses.filter(m => m.visitas >= 30);
+  const ufs = [...new Set(R.lojas.map(l => l.uf).filter(Boolean))].sort();
+  const bands = [...new Set(R.lojas.map(l => l.bandeira).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  $('#app').innerHTML = `
+  <section class="hero">
+    <div><h1>Central de <em>Lojas</em></h1>
+    <p>O trabalho da equipe de campo Penalty em cada ponto de venda, desde ${mesBR(R.primeira_visita.slice(0,7))}. Busque ou clique em uma loja no mapa para abrir o overview completo.</p></div>
+  </section>
+  <section class="kpis">
+    <div class="card kpi hl"><div class="v">${n(T.lojas)}</div><div class="l">lojas atendidas</div><div class="s">${T.cidades} cidades · ${T.ufs} estados</div></div>
+    <div class="card kpi"><div class="v">${n(T.visitas)}</div><div class="l">visitas realizadas</div><div class="s">${horas(T.minutos)} horas dentro das lojas</div></div>
+    <div class="card kpi"><div class="v">${n(T.pessoas)}</div><div class="l">vendedores treinados</div><div class="s">em ${n(T.treinamentos)} treinamentos</div></div>
+    <div class="card kpi"><div class="v">${n(T.pe)}</div><div class="l">pontos extras conquistados</div><div class="s">tipos distintos por loja</div></div>
+    <div class="card kpi"><div class="v">${n(T.calibradas)}</div><div class="l">bolas calibradas</div><div class="s">+ ${n(T.limpas)} bolas limpas</div></div>
+    <div class="card kpi"><div class="v">${n(T.atacador + T.enchimento)}</div><div class="l">calçados preparados</div><div class="s">${n(T.atacador)} com atacador · ${n(T.enchimento)} com enchimento</div></div>
+    <div class="card kpi"><div class="v">${n(T.brindes)}</div><div class="l">brindes entregues</div><div class="s">Compre e Ganhe e Volta às Aulas</div></div>
+    <div class="card kpi"><div class="v">${n(T.fotos)}</div><div class="l">fotos de execução</div><div class="s">registro de cada visita</div></div>
+  </section>
+  <section class="sec grid2">
+    <div class="card panel"><h3>Share Penalty na gôndola</h3><div class="sub">Média das lojas visitadas no mês · espaço Penalty ÷ espaço total da categoria</div>
+      <div class="legend"><span><b style="background:var(--s-bola)"></b>Bola</span><span><b style="background:var(--s-calc)"></b>Calçados</span></div>
+      <div class="chart" id="chShare"></div></div>
+    <div class="card panel"><h3>Visitas por mês</h3><div class="sub">Visitas com check-in em loja · mês atual em andamento</div><div class="chart" id="chVis"></div></div>
+  </section>
+  <section class="sec">
+    <div class="sec-h"><h2>Lojas</h2><span class="note">Clique em uma loja para ver o overview</span></div>
+    <div class="filters">
+      <input id="fq" type="search" placeholder="Buscar por nome, código, bandeira ou cidade" value="${esc(filtro.q)}" aria-label="Buscar loja">
+      <select id="fuf" aria-label="Estado"><option value="">Todos os estados</option>${ufs.map(u => `<option ${u === filtro.uf ? 'selected' : ''}>${u}</option>`).join('')}</select>
+      <select id="fband" aria-label="Bandeira"><option value="">Todas as bandeiras</option>${bands.map(b => `<option ${b === filtro.band ? 'selected' : ''}>${esc(b)}</option>`).join('')}</select>
+      <span class="count" id="fcount"></span>
+    </div>
+    <div id="map"></div>
+    <div class="card" style="margin-top:12px"><div class="tbwrap"><table class="tb"><thead><tr>
+      <th data-k="nome">Loja</th><th data-k="v" class="num">Visitas</th>
+      <th data-k="uv" class="hide-sm">Última visita</th><th data-k="sb">Share bola</th><th data-k="sc">Share calçados</th><th data-k="pe" class="num hide-sm">Pontos extras</th><th class="hide-sm" aria-label="Abrir"></th>
+    </tr></thead><tbody id="tbody"></tbody></table></div><button class="more" id="more">Mostrar mais</button></div>
+  </section>
+  <p class="foot">Dados das visitas da equipe de campo até ${dBR(R.ultima_visita)}. Share = espaço Penalty (Penalty, Linha e FDL) sobre o espaço total da categoria, somando vitrine, ponto extra e ponto natural. Visitas de pesquisa de campo sem medição não entram em share e estoque.</p>`;
+
+  lineChart($('#chShare'), meses.map(m => mesBR(m.m)), [
+    { name: 'Bola', color: 'var(--s-bola)', data: meses.map(m => m.sb) },
+    { name: 'Calçados', color: 'var(--s-calc)', data: meses.map(m => m.sc) }], { max: 1 });
+  barChart($('#chVis'), meses.map(m => mesBR(m.m)), meses.map(m => m.visitas), { color: 'var(--red)', unit: ' visitas', parcial: R.ultima_visita.slice(0, 7) === meses[meses.length - 1].m ? meses.length - 1 : -1, notaParcial: `mês em andamento (até ${dBR(R.ultima_visita)})` });
+
+  $('#fq').addEventListener('input', e => { filtro.q = e.target.value; filtro.lim = 60; atualizaLista(); });
+  $('#fuf').addEventListener('change', e => { filtro.uf = e.target.value; filtro.lim = 60; atualizaLista(true); });
+  $('#fband').addEventListener('change', e => { filtro.band = e.target.value; filtro.lim = 60; atualizaLista(true); });
+  $('#more').addEventListener('click', () => { filtro.lim += 120; atualizaLista(); });
+  document.querySelectorAll('.tb th').forEach(th => th.addEventListener('click', () => {
+    const k = th.dataset.k; filtro.asc = filtro.ord === k ? !filtro.asc : ['nome', 'cidade'].includes(k); filtro.ord = k; atualizaLista();
+  }));
+  $('#tbody').addEventListener('click', e => { const tr = e.target.closest('tr[data-c]'); if (tr) go('loja/' + tr.dataset.c); });
+
+  if (mapa) { mapa.remove(); mapa = null; }
+  if (window.L) {
+    mapa = L.map('map', { preferCanvas: true, scrollWheelZoom: false }).setView([-14.5, -47], 4);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap', maxZoom: 18 }).addTo(mapa);
+    camada = L.layerGroup().addTo(mapa);
+  }
+  atualizaLista(true);
+}
+
+// "Lider - Reduto - Belem - Pa" → título "Lider", bairro "Reduto" (cidade e UF já aparecem embaixo)
+function nomeLoja(l) {
+  const sem = x => x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  const partes = l.nome.split(' - ').filter(p => ![sem(l.cidade), sem(l.uf)].includes(sem(p)));
+  return { titulo: partes[0] || l.nome, bairro: partes.slice(1).join(' · ') };
+}
+function shareCel(v, v0) {
+  if (v == null) return '<span class="mt">sem medição</span>';
+  const d = v0 == null ? 0 : v - v0, dd = Math.abs(d) >= 0.02 ? `<span class="d ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d * 100).toFixed(0)} p.p.</span>` : '';
+  return `<div class="sh"><div class="t"><b>${pct(v)}</b>${dd}</div><i><u style="width:${Math.min(100, v * 100).toFixed(0)}%"></u></i></div>`;
+}
+
+function atualizaLista(ajustaMapa) {
+  const ls = lojasFiltradas(), k = filtro.ord, s = filtro.asc ? 1 : -1;
+  ls.sort((a, b) => { const x = a[k] ?? -1, y = b[k] ?? -1; return (typeof x === 'string' ? x.localeCompare(y) : x - y) * s; });
+  $('#fcount').textContent = `${n(ls.length)} lojas`;
+  document.querySelectorAll('.tb th').forEach(th => th.dataset.k === k ? th.setAttribute('aria-sort', filtro.asc ? 'ascending' : 'descending') : th.removeAttribute('aria-sort'));
+  const vmax = Math.max(...R.lojas.map(l => l.v), 1);
+  $('#tbody').innerHTML = ls.slice(0, filtro.lim).map(l => {
+    const nm = nomeLoja(l), dias = Math.round((Date.parse(R.ultima_visita) - Date.parse(l.uv)) / 864e5);
+    const cor = dias <= 15 ? 'var(--good)' : dias <= 30 ? '#d4a017' : 'var(--ink-3)';
+    const quando = dias <= 0 ? 'no último dia' : dias === 1 ? 'há 1 dia' : `há ${dias} dias`;
+    const r = l.f ? (AJ[fk(l.f)]?.r ?? l.fr ?? 0) : 0;
+    return `<tr data-c="${l.cod}">
+    <td><div class="lj"><div class="th${l.f ? '' : ' vazio'}">${l.f ? `<img loading="lazy" src="${esc(l.f)}" alt="" class="${r ? 'r' + r : ''}">` : ''}</div>
+      <div><div class="nm">${esc(nm.titulo)}</div><div class="mt">${esc([nm.bairro, `${l.cidade} / ${l.uf}`].filter(Boolean).join(' · '))} · cód. ${l.cod}</div></div></div></td>
+    <td class="num"><div class="vb"><i><u style="width:${(l.v / vmax * 100).toFixed(0)}%"></u></i><b>${l.v}</b></div></td>
+    <td class="hide-sm"><span class="rec" style="--c:${cor}"><span>${dBR(l.uv)}<small>${quando}</small></span></span></td>
+    <td>${shareCel(l.sb, l.sb0)}</td><td>${shareCel(l.sc, l.sc0)}</td>
+    <td class="num hide-sm"><span class="pxc${l.pe ? '' : ' z'}">${l.pe || '—'}</span></td>
+    <td class="go hide-sm">›</td></tr>`;
+  }).join('') || `<tr><td colspan="7" class="empty">Nenhuma loja encontrada.</td></tr>`;
+  $('#more').hidden = ls.length <= filtro.lim;
+  if (!mapa) return;
+  camada.clearLayers();
+  const pts = [];
+  ls.forEach(l => {
+    if (l.lat == null || l.lng == null || Math.abs(l.lat) > 35 || l.lng > -30 || l.lng < -75) return;
+    pts.push([l.lat, l.lng]);
+    L.circleMarker([l.lat, l.lng], { radius: 5 + Math.min(5, l.v / 8), color: '#fff', weight: 1, fillColor: '#000', fillOpacity: .85 })
+      .bindPopup(`<b>${esc(l.nome)}</b>${esc(l.cidade)} / ${esc(l.uf)}<br>${l.v} visitas · última ${dBR(l.uv)}<br><button onclick="go('loja/${l.cod}')">Abrir loja</button>`)
+      .addTo(camada);
+  });
+  if (ajustaMapa && pts.length) mapa.fitBounds(pts, { padding: [24, 24], maxZoom: 13 });
+}
+
+/* ---------- tela: loja ---------- */
+async function telaLoja(cod) {
+  if (mapa) { mapa.remove(); mapa = null; }
+  $('#app').innerHTML = `<div class="loading">Carregando loja ${cod}…</div>`;
+  let d;
+  try { d = cache[cod] ||= await FONTE.loja(cod); }
+  catch (e) { $('#app').innerHTML = `<button class="back" onclick="go('')">← Todas as lojas</button><div class="card empty">Loja ${cod} não encontrada.</div>`; return; }
+  const T = d.totais, AD = d.antes_depois, tl = d.timeline;
+  AUTO = {};
+  d.galeria.forEach(g => { if (g.r) AUTO[fk(g.u)] = g.r; });
+  d.pares.forEach(p => { if (p.ra) AUTO[fk(p.a)] = p.ra; if (p.rb) AUTO[fk(p.b)] = p.rb; });
+  const chips = [
+    d.bandeira && `Bandeira <b>${esc(d.bandeira)}</b>`, d.segmento && `Segmento <b>${esc(d.segmento)}</b>`,
+    d.tamanho && `Tamanho <b>${esc(d.tamanho)}</b>`, d.shopping && (d.shopping === 'Rua' ? `<b>Loja de rua</b>` : `Shopping <b>${esc(d.shopping)}</b>`),
+    d.vendedores && `<b>${d.vendedores}</b> vendedores`, d.vitrine && `Vitrine <b>${d.vitrine}</b>`, `Cód. <b>${d.cod}</b>`].filter(Boolean);
+
+  const adCard = (titulo, par, fmt, tipo) => {
+    if (!par || !par[0]) return `<div class="card adc"><div class="t">${titulo}</div><div class="dt" style="margin-top:12px">Sem medição</div></div>`;
+    const [a, b] = par, dv = b[1] - a[1], unico = a[0] === b[0];
+    const cls = Math.abs(dv) < (tipo === 'p' ? .005 : .5) ? 'eq' : dv > 0 ? 'up' : 'down';
+    const txt = tipo === 'p' ? `${dv > 0 ? '+' : ''}${(dv * 100).toFixed(0)} p.p.` : `${dv > 0 ? '+' : ''}${n(dv)}`;
+    return `<div class="card adc"><div class="t">${titulo}</div>
+      <div class="row">${unico ? '' : `<span class="from">${fmt(a[1])}</span><span class="arrow">→</span>`}<span class="to">${fmt(b[1])}</span></div>
+      ${unico ? '<span class="dl eq">1 medição</span>' : `<span class="dl ${cls}">${txt}</span>`}
+      <div class="dt">${unico ? dBR(b[0]) : `${dBR(a[0])} → ${dBR(b[0])}`}</div></div>`;
+  };
+
+  const tiles = [
+    ['visitas', T.visitas, `${horas(T.minutos)} h em loja`, true], ['vendedores treinados', T.pessoas, `${T.treinamentos} treinamentos`],
+    ['bolas calibradas', T.calibradas, `${n(T.limpas)} limpas`], ['calçados preparados', T.atacador + T.enchimento, `${n(T.atacador)} atacador · ${n(T.enchimento)} enchimento`],
+  ];
+  if (T.brindes) tiles.push(['brindes entregues', T.brindes, `Compre e Ganhe ativo em ${T.cg_visitas} visitas`]);
+
+  const crono = tl.slice().reverse().filter(t => !t.pc);
+  const temShare = crono.some(t => t.sb != null || t.sc != null);
+  const mb = AD.mb || [], mc = AD.mc || [];
+  const linhasMarca = [];
+  const addMarca = (nome, m, par) => {
+    if (!m.length) return;
+    const [a, b] = par, mesmoMes = a[0].slice(0, 7) === b[0].slice(0, 7);
+    const rot = d => mesmoMes ? dBR(d).slice(0, 5) : mesBR(d.slice(0, 7));
+    linhasMarca.push({ label: `${nome} ${rot(a[0])}`, v: m[0] });
+    if (m.length > 1 && a[0] !== b[0]) linhasMarca.push({ label: `${nome} ${rot(b[0])}`, v: m[1] });
+  };
+  addMarca('Bola', mb, AD.sb); addMarca('Calçados', mc, AD.sc);
+
+  const peTodos = [...new Set([...d.pe_conquistados, ...d.pe_atual])].sort();
+  // fotos ocultadas pelo admin somem para os demais; o admin as vê marcadas como OCULTA
+  const pares = ADMIN ? d.pares : d.pares.filter(p => !oculta(p.a) && !oculta(p.b));
+  const galeria = ADMIN ? d.galeria : d.galeria.filter(g => !oculta(g.u));
+  $('#app').innerHTML = `
+  <button class="back" onclick="go('')">← Todas as lojas</button>
+  <section class="card lhead">
+    <div><h1>${esc(d.nome)}</h1>
+      <div class="addr">${esc([d.endereco, d.bairro, `${d.cidade} / ${d.uf}`].filter(Boolean).join(' · '))}</div>
+      <div class="chips">${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div></div>
+    <div class="since"><span class="big">${tl.length} ${tl.length === 1 ? 'visita' : 'visitas'}</span>em ${R.primeira_visita.slice(0, 4)}, desde ${dBR(tl[tl.length - 1].d)}<br>última visita ${dBR(tl[0].d)}</div>
+  </section>
+
+  <section class="sec"><div class="sec-h"><h2>Nosso trabalho nesta loja</h2><span class="note">Acumulado no período exibido</span></div>
+    <div class="kpis" style="grid-template-columns:repeat(${tiles.length},1fr)">${tiles.map(([l, v, s, hl]) => `<div class="card kpi${hl ? ' hl' : ''}"><div class="v">${n(v)}</div><div class="l">${l}</div><div class="s">${s}</div></div>`).join('')}</div>
+  </section>
+
+  <section class="sec"><div class="sec-h"><h2>Antes × depois</h2><span class="note">Primeira medição do período × medição mais recente</span></div>
+    <div class="ad">${adCard('Share de bola', AD.sb, pct, 'p')}${adCard('Share de calçados', AD.sc, pct, 'p')}${adCard('Estoque de bolas', AD.qb, n, 'n')}${adCard('Estoque de chuteiras', AD.qc, n, 'n')}${adCard('Pontos extras ativos', AD.pe, n, 'n')}</div>
+  </section>
+
+  ${pares.length ? `<section class="sec"><div class="sec-h"><h2>Execução em fotos</h2><span class="note">Arraste a barra para comparar antes e depois · ${pares.length} execuções recentes</span></div>
+    <div class="card panel ba-wrap"><div><div class="ba fr" id="ba"><img id="baB" alt="Depois"><div class="clip fr"><img id="baA" alt="Antes"></div><div class="bar" id="baBar"></div><span class="tag a">Antes</span><span class="tag b">Depois</span><input type="range" min="0" max="100" value="50" id="baR" aria-label="Comparar antes e depois"></div>
+      <div class="sub" id="baCap" style="margin-top:8px"></div>
+      ${ADMIN ? `<div class="ba-adm"><button data-g="a" data-v="-90">↺ Antes</button><button data-g="a" data-v="90">↻ Antes</button><button data-g="b" data-v="-90">↺ Depois</button><button data-g="b" data-v="90">↻ Depois</button><button data-g="h">Ocultar / mostrar par</button></div>` : ''}</div>
+      <div class="thumbs">${pares.map((p, i) => `<button class="thumb fr" data-i="${i}" data-a="${esc(p.a)}">${img(p.b)}<span>${esc(p.t)} · ${dBR(p.d)}</span></button>`).join('')}</div></div></section>` : ''}
+
+  <section class="sec grid2">
+    <div class="card panel"><h3>Evolução do share Penalty</h3><div class="sub">Por visita · espaço Penalty ÷ espaço total da categoria</div>
+      ${temShare ? `<div class="legend"><span><b style="background:var(--s-bola)"></b>Bola</span><span><b style="background:var(--s-calc)"></b>Calçados</span></div><div class="chart" id="chLS"></div>` : '<div class="empty">Sem medição de share.</div>'}</div>
+    <div class="card panel"><h3>Penalty × concorrência</h3><div class="sub">Divisão do espaço por marca na primeira e na última medição</div>
+      ${linhasMarca.length ? `<div class="legend"><span><b class="sq" style="background:var(--red)"></b>Penalty</span><span><b class="sq" style="background:var(--comp)"></b>Concorrentes</span></div><div class="chart" id="chMarca"></div>` : '<div class="empty">Sem medição de share.</div>'}</div>
+  </section>
+
+  <section class="sec"><div class="sec-h"><h2>Pontos extras</h2><span class="note">Espaços adicionais conquistados para a Penalty</span></div>
+    <div class="card panel">${peTodos.length ? `<div class="pes">${peTodos.map(p => `<span class="pe ${d.pe_atual.includes(p) ? 'on' : ''}">${esc(p)}<span class="st">${d.pe_atual.includes(p) ? 'ativo na última visita' : 'já conquistado'}</span></span>`).join('')}</div>` : '<div class="empty">Nenhum ponto extra registrado ainda.</div>'}</div>
+  </section>
+
+  ${galeria.length ? `<section class="sec"><div class="sec-h"><h2>Galeria</h2><span class="note">${ADMIN ? '<span class="modo-adm">Modo ajuste: ↺ ↻ giram, ✕ oculta para o cliente</span> · ' : ''}${n(d.n_fotos)} fotos registradas nesta loja · mais recentes</span></div>
+    <div class="gal">${galeria.map((g, i) => `<div class="gi fr"><button data-i="${i}" aria-label="Ampliar foto">${img(g.u, g.t)}</button><span>${esc(g.t)} · ${dBR(g.d)}</span>${admBtns(g.u)}</div>`).join('')}</div></section>` : ''}
+
+  <section class="sec"><div class="sec-h"><h2>Linha do tempo</h2><span class="note">${tl.length} visitas</span></div>
+    <div class="card panel"><ul class="tl">${tl.map(itemTL).join('')}</ul></div></section>
+  <p class="foot">Dados das visitas da equipe de campo. Share = espaço Penalty (Penalty, Linha e FDL) sobre o espaço total da categoria, somando vitrine, ponto extra e ponto natural.</p>`;
+
+  if (temShare) lineChart($('#chLS'), crono.map(t => dBR(t.d).slice(0, 5) + '/' + t.d.slice(2, 4)), [
+    { name: 'Bola', color: 'var(--s-bola)', data: crono.map(t => t.sb ?? null) },
+    { name: 'Calçados', color: 'var(--s-calc)', data: crono.map(t => t.sc ?? null) }], { max: 1 });
+  if (linhasMarca.length) shareStack($('#chMarca'), linhasMarca);
+
+  if (pares.length) {
+    let atual = 0;
+    const sel = i => {
+      atual = i; const p = pares[i];
+      $('#baA').src = p.a; $('#baA').dataset.k = fk(p.a); $('#baB').src = p.b; $('#baB').dataset.k = fk(p.b);
+      $('#baCap').textContent = `${p.t} · ${dBR(p.d)}${ADMIN && (oculta(p.a) || oculta(p.b)) ? ' · OCULTO para o cliente' : ''}`;
+      document.querySelectorAll('.thumb').forEach(t => t.classList.toggle('on', +t.dataset.i === i));
+      aplicaAjustes();
+    };
+    const slide = v => { $('#ba .clip').style.clipPath = `inset(0 ${100 - v}% 0 0)`; $('#baBar').style.left = v + '%'; };
+    $('#baR').addEventListener('input', e => slide(+e.target.value));
+    document.querySelectorAll('.thumb').forEach(t => t.addEventListener('click', () => sel(+t.dataset.i)));
+    document.querySelectorAll('.ba-adm button').forEach(b => b.addEventListener('click', async () => {
+      const p = pares[atual];
+      if (b.dataset.g === 'h') { const h = !(oculta(p.a) || oculta(p.b)); await ajusta(p.a, { h }); await ajusta(p.b, { h }); }
+      else await ajusta(b.dataset.g === 'a' ? p.a : p.b, { gira: +b.dataset.v });
+      sel(atual);
+    }));
+    sel(0); slide(50);
+  }
+  document.querySelectorAll('.gal .gi > button').forEach(b => b.addEventListener('click', () => lbOpen(galeria, +b.dataset.i)));
+  aplicaAjustes();
+}
+
+function itemTL(t) {
+  const a = [];
+  if (t.tr != null) a.push(`<span class="act r">Treinou <b>${t.tr}</b> ${t.tr === 1 ? 'vendedor' : 'vendedores'}${t.ta ? ' · ' + esc(t.ta.map(x => x.toLowerCase()).join(', ')) : ''}</span>`);
+  if (t.cb) a.push(`<span class="act">Calibrou <b>${t.cb}</b> bolas</span>`);
+  if (t.lb) a.push(`<span class="act">Limpou <b>${t.lb}</b> bolas</span>`);
+  if (t.eb && !t.cb && !t.lb) a.push(`<span class="act">Execução de bolas</span>`);
+  if (t.at) a.push(`<span class="act">Atacador em <b>${t.at}</b> calçados</span>`);
+  if (t.en) a.push(`<span class="act">Enchimento em <b>${t.en}</b> calçados</span>`);
+  if (t.ec && !t.at && !t.en) a.push(`<span class="act">Execução de calçados</span>`);
+  if (t.br) a.push(`<span class="act r"><b>${t.br}</b> brindes entregues</span>`);
+  if (t.pe) a.push(`<span class="act r">Ponto extra: <b>${esc(t.pe.join(', '))}</b></span>`);
+  if (t.co) a.push(`<span class="act">Concorrência: ${esc(t.co.map(x => x.toLowerCase()).join(', '))}</span>`);
+  if (t.pc) a.push(`<span class="act">Pesquisa de campo</span>`);
+  if (!a.length) a.push(`<span class="act">Visita de acompanhamento</span>`);
+  const meta = [t.sb != null && `share bola ${pct(t.sb)}`, t.sc != null && `share calçados ${pct(t.sc)}`, t.qb != null && `${t.qb} bolas em estoque`, t.qc != null && `${t.qc} chuteiras em estoque`].filter(Boolean);
+  return `<li><div class="d">${dBR(t.d)}<small>${esc(t.c)}${t.m ? ` · ${Math.floor(t.m/60)}h${String(t.m%60).padStart(2,'0')} em loja` : ''}</small></div>
+    <div><div class="acts">${a.join('')}</div>${meta.length ? `<div class="meta">${meta.join(' · ')}</div>` : ''}</div></li>`;
+}
+
+/* ---------- lightbox ---------- */
+let LB = { lista: [], i: 0 };
+function lbOpen(lista, i) { LB = { lista, i }; lbShow(); $('#lb').classList.add('on'); }
+function lbShow() { const g = LB.lista[LB.i]; $('#lbImg').src = g.u; $('#lbImg').className = aj(g.u).r ? 'r' + aj(g.u).r : '';$('#lbCap').textContent = `${g.t} · ${dBR(g.d)} · ${LB.i + 1}/${LB.lista.length}`; }
+function lbStep(k) { LB.i = (LB.i + k + LB.lista.length) % LB.lista.length; lbShow(); }
+function lbClose() { $('#lb').classList.remove('on'); }
+document.addEventListener('keydown', e => { if (!$('#lb').classList.contains('on')) return; if (e.key === 'Escape') lbClose(); if (e.key === 'ArrowLeft') lbStep(-1); if (e.key === 'ArrowRight') lbStep(1); });
+$('#lb').addEventListener('click', e => { if (e.target.id === 'lb') lbClose(); });
+
+/* ---------- início ---------- */
+async function iniciar() {
+  try {
+    [R, AJ] = await Promise.all([FONTE.resumo(), FONTE.ajustes().catch(() => ({}))]);
+    ADMIN = FONTE.admin();
+    $('#btnRev').hidden = !ADMIN;
+  }
+  catch (e) { $('#app').innerHTML = `<div class="card empty">${/permission/i.test(e.message) ? 'Seu e-mail ainda não tem acesso. Fale com a equipe responsável.' : 'Não foi possível carregar os dados.'}</div>`; return; }
+  $('#upd').textContent = `Atualizado em ${dBR(R.atualizado.slice(0, 10))}`;
+  rota();
+}
+window.iniciarCentral = iniciar;
+if (!window.CENTRAL_FONTE) iniciar();
+</script>
+</body>
+</html>
